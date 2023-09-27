@@ -28,6 +28,8 @@ switch (expression)
 
 Q:**为什么必须加break?**
 
+A: 见 https://www.bilibili.com/video/BV1xv4y1t7gb?p=12&vd_source=385c8668128990a1175f24f4366f57fd
+
 ## switch-case 流程图
 
 它求值表达式或变量的值（基于`switch`括号内给出的内容），然后根据结果执行相应的情况。
