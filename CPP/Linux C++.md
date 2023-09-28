@@ -510,7 +510,7 @@ int a;
 
 ### 详细设计
 
-![](/CPP/Pictures/main.png)
+![](https://github.com/ZhuShiyun/CPP-Notebook/blob/main/CPP/Pictures/main.png?raw=true)
 
 ### 编码实现
 
