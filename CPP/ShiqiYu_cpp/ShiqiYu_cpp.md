@@ -534,4 +534,637 @@ Mat::Mat(const Mat& m)
     std::shared_ptr<MyTime> mt2 = mt1;
     ```
 
-    
+
+# Chapter 12: Class Inheritance
+
+## 12.1 Deriving a Class
+
+### Inheritance
+
+- Inherit members (attributes and functions) from one class
+  - Base class (parent)
+  - Derived class (child)
+
+- C++ supports **multiple inheritance** and **multilevel inheritance**
+
+  ```c++
+  class Base {
+  	public:
+  		int a;
+  		int b;
+  };
+  
+  class Derived: public Base {
+  	public:
+  		int c;
+  };
+  
+  class Derived: public Base1, public Base2{
+  ...
+  };
+  ```
+
+### Constructors(' process)
+
+- To instantiate a derived class object
+
+  - Allocate memory // 申请内存
+
+  - Derived constructor is invoked // 调用派生构造函数
+
+    - Base object is constructed by a base constructor // 基对象由基构造函数构造
+
+    - Member initializer list initializes members // 成员初始化列表初始化成员
+
+    - To execute the body of the derived constructor // 执行派生构造函数的主体
+
+  ```c++
+  class Derived: public Base{
+  	public:
+  		int c;
+  		Derived(int c): Base(c - 2, c - 1), c(c){
+  		...
+  		}
+  };
+  ```
+
+  
+
+### Destructors(' process)
+
+顺序和构造函数相反，是子类的析构函数先执行，最后是父类的。
+
+- The destructor of the derived class is invoked first,
+- Then the destructor of the base class.
+
+> week12/examples/derive.cpp
+
+## 12.2 Access Control (protected)
+
+### Public members
+
+- Accessible anywhere
+
+### Private members
+
+- Only accessible to the members and friends of that class
+
+```C++
+class Person {
+	private:
+		int n; // private member
+	public:
+		// this->n is accessible
+		Person() : n(10) {}
+		// other.n is accessible
+		Person(const Person& other) : n(other.n) {}
+		// this->n is accessible
+		void set(int n) {this->n = n;}
+		// this->n and other.n are accessible
+		void set(const Person& other) {this->n = other.n;}
+};
+```
+
+### Member access
+
+#### Protected members
+
+- Accessible to the members and friends of that class
+
+  ```C++
+  class Base
+  {
+  	protected:
+  		int n;
+  	private:
+  		void foo1(Base& b)
+  		{
+  			n++; // Okay
+  			b.n++; // Okay
+  		}
+  };
+  ```
+
+- Accessible to the members and friends of the **derived** class
+
+  ```C++
+  class Derived : public Base
+  {
+  	void foo2(Base& b, Derived& d)
+  	{
+  		n++; //Okay
+  		this->n++; //Okay
+  		//b.n++; //Error.
+  		d.n++; //Okay
+  	}
+  };
+  ```
+
+- 如果一个函数跟这个类没关系：
+
+  ```C++
+  // a non-member non-friend function
+  void compare(Base& b, Derived& d)
+  {
+  	// b.n++; // Error
+  	// d.n++; // Error
+  }
+  ```
+
+### Public Inheritance
+
+- Public members of the base class
+  - Still be public in the derived class
+  - Accessible anywhere
+- Protected members of the base class
+  - Still be protected in the derived class
+  - Accessible in the derived class only
+- **Private** members of the base class
+  - **Not accessible** in the derived class
+
+### Protected Inheritance
+
+- Public members and protected members of the base class
+  - **All** will be protected in the derived class
+  - Accessible in the derived class only
+- Private members of the base class
+  - Not accessible in the derived class
+
+### Private Inheritance
+
+- **Public** members and **protected** members of the base class
+  - **Be private** in the derived class
+  - Accessible in the derived class only
+- Private members of the base class
+  - Not accessible in the derived class
+
+
+
+## 12.3 Virtual Functions
+
+> Let’s look at the example first, what will be the output?
+>
+> ```C++
+> class Person{
+> 	public:
+> 		void print(){
+> 			cout << "Name: " << name << endl;
+> 		}
+> };
+> class Student: public Person{
+> 	public:
+> 		void print(){
+> 			cout << "Name: " << name;
+> 			cout << ". ID: " << id << endl;
+> 		}
+> };
+> ...
+> Person * p = new Student();
+> p->print(); // call Person::print()?
+> ```
+>
+> example: virtual.cpp
+
+- But if we define print() function as a virtual function, the output will be different.
+- Static binding: the compiler decides which function to call
+- Dynamic binding: the called function is decided at runtime.
+- Keyword virtual makes the function virtual for the base and all derived classes.
+
+### Virtual Destructors
+
+- If a destructor is not virtual, only the destructor of the base class is
+  executed in the follow examples.
+
+  ```c++
+  Person * p = new Student("xue", "2020");
+  p->print();
+  ...
+  ...
+  delete p; //if its destructor is not virtual
+  ```
+
+  
+
+## 12.4 Inheritance and Dynamic Memory Allocation
+
+​	-- Dynamic Memory Management
+
+> **Question:**
+>
+> - If a base class uses dynamic memory allocation, and redefines a copy constructor and assignment operator.
+> - Case 1: If no dynamic memory allocation in the derived class, **no special operations are needed.**
+> - Case 2: if dynamic memory is allocated in the derived class, you should **redefine** a copy constructor and an assignment operator.
+
+Example of Case 2:
+
+```C++
+class MyMap: pubic MyString{
+		char * keyname;
+	public:
+		MyMap(const char * key, const char * value){
+			...
+		}
+		MyMap(const MyMap & mm): MyString(mm.buf_len, mm.characters){
+			//allocate memory for keyname
+			//and hard copy from mm to *this
+        }
+		MyMap & operator=(const MyMap &mm){
+			MyString::operator=(mm);
+			//allocate memory for keyname
+			//and hard copy from mm to *this
+			return *this;
+		}
+};
+```
+
+## 12.5 Examples in OpenCV
+
+#### Derived cv::Mat_
+
+- Template matrix class derived from cv::Mat, a wrapper, more C++ style.
+
+> modules/core/include/opencv2/core/mat.hpp
+
+<img src="images/Lecture1201.png" style="zoom: 50%;" />
+
+### cv::Matx
+
+- A template class for small matrices whose type and size are known at compilation time. (Mat designed for large matrices)
+
+> modules/core/include/opencv2/core/matx.hpp
+
+<img src="images/Lecture1202.png" style="zoom: 50%;" />
+
+### cv::Vec
+
+> modules/core/include/opencv2/core/matx.hpp
+
+<img src="images/Lecture1203.png" style="zoom:50%;" />
+
+When we define a vector, we can type: `Vec<float, 3> xyz(1.2f, 2.3f, 3.4f);`,
+
+but it is still not convenient..
+
+### Combined with typedef
+
+Matx use many typedefs to compatible small vectors, for example:
+
+> modules/core/include/opencv2/core/matx.hpp
+
+<img src="images/Lecture1204.png" style="zoom: 50%;" />
+
+`Vec<float, 3> xyz(1.2f, 2.3f, 3.4f);`   --------> `Vec3f xyz(1.2f, 2.3f, 3.4f);`
+
+and also, matrix:
+
+<img src="images/Lecture1205.png" style="zoom:50%;" />
+
+```cpp
+Matx33f m(1, 2, 3,
+4, 5, 6,
+7, 8, 9);
+cout << sum(Mat(m*m.t())) << endl;
+```
+
+# Chapter 13: Class temptales
+
+## 13.1 Review: Function Templates
+
+- A function template is not a type, or a function, or any other entity.
+
+- No code is generated from a source file that contains only template definitions.
+
+- The template arguments must be determined, then the compiler can generate an actual function
+
+- "**Function templates**" vs "**template functions**".
+
+  ```c++
+  template<typename T>
+  T sum(T x, T y){
+  	cout << "The input type is " << typeid(T).name() << endl;
+  	return x + y;
+  }
+  // instantiates sum<double>(double, double)
+  template double sum<double>(double, double);
+  // instantiates sum<char>(char, char), template argument deduced
+  template char sum<>(char, char);
+  // instantiates sum<int>(int, int), template argument deduced(推导)
+  template int sum(int, int);
+  ```
+
+- Implicit instantiation occurs when a function template is not explicitly instantiated.
+
+  ```c++
+  template<typename T>
+  T product(T x, T y){
+  	cout << "The input type is " << typeid(T).name() << endl;
+  	return x * y;
+  }
+  // Implicitly instantiates product<int>(int, int)
+  cout << "product = " << product<int>(2.2f, 3.0f) << endl;
+  // Implicitly instantiates product<float>(float, float)
+  cout << "product = " << product(2.2f, 3.0f) << endl;
+  ```
+
+### Different Classes for Different Type Matrices
+
+- Matrix with **int** elements, Matrix with **float** elements
+
+  > matclass.cpp
+
+  ```c++
+  // Class IntMat
+  class IntMat
+  {
+          size_t rows;
+          size_t cols;
+          int * data;
+      public:
+          IntMat(size_t rows, size_t cols):
+                          rows(rows), cols(cols)
+          {
+              data = new int[rows * cols]{};
+          }
+          ~IntMat()
+          {
+              delete [] data;
+          }
+          IntMat(const IntMat&) = delete; // 如果不写这一句，compiler会自动提供一个copy constructor
+          IntMat& operator=(const IntMat&) = delete; // 同样的，这一句放在这里意思是不要编译器提供默认的操作符重载，防止内存发生问题
+          int getElement(size_t r, size_t c);
+          bool setElement(size_t r, size_t c, int value);
+  };
+  ```
+
+  ```c++
+  // Class FloatMat
+  class FloatMat
+  {
+          size_t rows;
+          size_t cols;
+          float * data;
+      public:
+          FloatMat(size_t rows, size_t cols):
+                          rows(rows), cols(cols)
+          {
+              data = new float[rows * cols]{};
+          }
+          ~FloatMat()
+          {
+              delete [] data;
+          }
+          FloatMat(const FloatMat&) = delete;
+          FloatMat& operator=(const FloatMat&) = delete;
+          float getElement(size_t r, size_t c);
+          bool setElement(size_t r, size_t c, float value);
+  };
+  ```
+
+  ### Class Templates
+
+  - A class template defines a family of classes.
+  - Class template instantiation.
+
+  > mattemplate.cpp
+
+  ```c++
+  // Class Template
+  template<typename T>
+  class Mat
+  {
+      size_t rows;
+      size_t cols;
+      T * data;
+  public:
+      Mat(size_t rows, size_t cols): rows(rows), cols(cols)
+      {
+          data = new T[rows * cols]{};
+      }
+      ~Mat()
+      {
+          delete [] data;
+      }
+      Mat(const Mat&) = delete;
+      Mat& operator=(const Mat&) = delete;
+      T getElement(size_t r, size_t c);
+      bool setElement(size_t r, size_t c, T value);
+  };
+  ```
+
+  and **explicitly instantiate**:
+
+  ```c++
+  template class Mat<int>;
+  ```
+
+## 13.2 Template Non-Type Parameters
+
+- To declare a template
+  `template < parameter-list > declaration`
+- The parameters can be
+  - type template parameters
+  - template template parameters
+  - non-type template parameters
+    - integral types
+    - floating-point type
+    - pointer types
+    - lvalue reference types
+    - ...
+
+For example, 
+
+`vector<int> vec1;`
+
+`vector<int, 16> vec2;`   >> Here, `16` is a **Non-Type Parameter**
+
+### Non-Type Parameter
+
+- If we want to create a static matrix(no dynamic memory allocation inside)
+
+  > nontypeparam.cpp
+
+  ```cpp
+  template<typename T, size_t rows, size_t cols>
+  class Mat
+  {
+      T data[rows][cols];
+  public:
+      Mat(){}
+      /*
+       *  the default copy constructor will copy each element of a static array member,
+           so we do not 'delete' the copy constructor.
+           The same with the assignment operator.
+       */
+      // Mat(const Mat&) = delete;
+      // Mat& operator=(const Mat&) = delete;
+      T getElement(size_t r, size_t c);
+      bool setElement(size_t r, size_t c, T value);
+  };
+  ```
+
+  ```c++
+  int r=3, c=3;
+  Mat<int> vec1(r, c);
+  Mat<int> vec2(3, 3);
+  Mat<int, 3, 3> vec3;
+  ```
+
+###  Template in OpenCV
+
+<img src="images/Lecture1301.png" style="zoom: 50%;" />
+
+<img src="images/Lecture1302.png" style="zoom: 50%;" />
+
+## 13.3 Class Template Specialization
+
+- The class template can be for most types
+- But we want to save memory for type **bool** (1 byte or 1 bit).
+
+> specialization.cpp
+
+```C++
+template<typename T>
+class MyVector
+{
+		size_t length;
+		T * data;
+	public:
+		MyVector(size_t length): length(length){ 
+            data = new T[length]{}; 
+        }
+		~MyVector(){ 
+            delete [] data; 
+        }
+		MyVector(const MyVector&) = delete;
+		MyVector& operator=(const MyVector&) = delete;
+T getElement(size_t index);
+bool setElement(size_t index, T value);
+};
+```
+
+- Specialize MyVector for **bool** :
+
+```C++
+// class specialization
+template<>
+class MyVector<bool>
+{
+    size_t length;
+    unsigned char * data;
+  public:
+    MyVector(size_t length): length(length)
+    {
+        int num_bytes =  (length - 1) / 8 + 1;
+        data = new unsigned char[num_bytes]{};
+    }
+    ~MyVector()
+    {
+        delete [] data;
+    }
+    MyVector(const MyVector&) = delete;
+    MyVector& operator=(const MyVector&) = delete;
+    bool getElement(size_t index);
+    bool setElement(size_t index, bool value);
+};
+
+```
+
+## 13.4 std classes
+
+### std::basic_string
+
+- Store and manipulate sequences of char-like objects.<img src="images/Lecture1303.png" style="zoom: 67%;" />
+- So you can create your string by the template,  for example:
+
+```C++
+/*
+  * use std::string template to create a new type of string: bird_string.
+  */
+#include <iostream>
+#include <string>
+
+class bird_string {
+public:
+    // use std::string as the member of bird_string
+    std::string value;
+
+    // This is where you add custom member functions or extension functionality / 在这里添加自定义的成员函数或扩展功能
+    // For example, add constructors, operator overload... / 如可以添加构造函数、操作符重载等
+
+    bird_string(const char* str) : value(str) {}
+
+    // 示例：自定义字符串拼接函数
+    bird_string operator+(const bird_string& other) {
+        bird_string result = *this;
+        result.value += other.value;
+        return result;
+    }
+};
+```
+
+### std::array
+
+- a container that encapsulates fixed size arrays.
+
+  ```c++
+  template<
+  class T,
+  std::size_t N
+  > struct array;
+  ```
+
+  `std::array<int, 3> a2 = {1, 2, 3};`
+
+**Keyword: typename/class, class/struct*
+
+### Some other templates
+
+- **Vector**
+
+  ```C++
+  template<
+  class T,
+  class Allocator = std::allocator<T>
+  > class vector;
+  ```
+
+- **List**
+
+  ```cpp
+  template<
+  class T,
+  class Allocator = std::allocator<T>
+  > class list;
+  ```
+
+- **Set**
+
+  ```cpp
+  template<
+  class Key,
+  class Compare = std::less<Key>,
+  class Allocator = std::allocator<Key>
+  > class set;
+  ```
+
+- **Map**
+
+  ```cpp
+  template<
+  class Key,
+  class T,
+  class Compare = std::less<Key>,
+  class Allocator = std::allocator<std::pair<const Key, T> >
+  > class map;
+  ```
+
+- **Stack**
+
+  ```cpp
+  template<
+  class T,
+  class Container = std::deque<T>
+  > class stack;
+  ```
+
+  
