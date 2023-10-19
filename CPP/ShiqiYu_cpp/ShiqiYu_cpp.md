@@ -1167,4 +1167,53 @@ public:
   > class stack;
   ```
 
-  
+
+# Chapter 14: Error Handling
+
+## Standard Output Stream and Standard Error Stream
+
+### stdin, stdout, stderr
+
+- In C, three text streams are predefined, and their type is (**FILE** *).
+- stdin: standard input stream
+- stdout: standard output stream, for conventional output
+- stderr: standard error stream, for diagnostic output.
+- Why do we need the "ugly" black command windows?
+
+### Command-line Interface
+
+- The ONLY interface in the past.![](images/330px-RT-11_help.jpg)
+
+ The end of the HELP command output from [RT-11SJ](https://en.wikipedia.org/wiki/RT-11) displayed on a [VT100](https://en.wikipedia.org/wiki/VT100)
+
+
+
+But We are in the 21st Centaury
+• We still need them!
+Ø Many computers still have no GUI: severs, intelligent devices
+Ø Many programs do not provide GUI: HTTP servers, DB servers, ...
+
+## assert
+
+> assert.cpp
+>
+> and have a look at:  [c++assert detailed explanation](https://www.python100.com/html/104346.html)
+
+**What is assert:** assert is a function-like macro in <assert.h> and <cassert>.
+
+```c++
+#ifdef NDEBUG
+# define assert(condition) ((void)0)
+#else
+# define assert(condition) /*implementation defined*/
+#endif
+```
+
+- Do nothing if the condition is true
+- Output diagnostic information and call `abort()` if the condition is false.
+- If **NDEBUG** is defined, do nothing whatever the condition is.
+- assert can be used only for debugging, be removed by a macro **NDEBUG** before releasing.
+
+## Exceptions
+
+## More About Exceptions
