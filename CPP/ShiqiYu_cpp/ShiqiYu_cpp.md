@@ -1170,7 +1170,7 @@ public:
 
 # Chapter 14: Error Handling
 
-## Standard Output Stream and Standard Error Stream
+## 14.1 Standard Output Stream and Standard Error Stream
 
 ### stdin, stdout, stderr
 
@@ -1193,7 +1193,7 @@ But We are in the 21st Centaury
 Ø Many computers still have no GUI: severs, intelligent devices
 Ø Many programs do not provide GUI: HTTP servers, DB servers, ...
 
-## assert
+## 14.2 assert
 
 > assert.cpp
 >
@@ -1214,6 +1214,154 @@ But We are in the 21st Centaury
 - If **NDEBUG** is defined, do nothing whatever the condition is.
 - assert can be used only for debugging, be removed by a macro **NDEBUG** before releasing.
 
-## Exceptions
+## 14.3 Exceptions
 
-## More About Exceptions
+## 14.4 More About Exceptions
+
+# Chapter 15: Nested Classes and RTTI
+
+## 15.1 Friend Classes
+
+### Review: friend Functions
+
+- A friend function is defined out of the class.
+
+- No MyTime:: before its function name
+
+  ```c++
+  class MyTime {
+  	// ...
+  	public:
+  		friend MyTime operator+(int m, const MyTime & t);
+  };
+  MyTime operator+(int m, const MyTime & t) {
+  	return t + m;
+  }
+  ```
+
+### friend Classes
+
+> friend.cpp
+
+- A class is a friend of another class.
+- The friend class can access all members even private members.
+- A friend class can be public, protected and private.
+
+Here is a Sniper(狙击手)， He/She will expend bullets:
+
+ ```cpp
+ class Sniper{
+ private:
+ 	int bullets;
+ public:
+  	Sniper(int bullets = 0);
+ 	 friend class Supplier;
+ };
+ ```
+
+Here is a   Supplier, He/She stores bullets(int 1000) for Sniper. A Sniper needs to expend the Supplier's storage.
+
+```cpp
+class Supplier {
+		int storage;
+	public:
+		Supplier(int storage = 1000);
+		bool provide(Sniper & sniper) {
+			// bullets is a private member
+		    if (sniper.bullets < 20)
+			// ...
+		}
+};
+```
+
+
+
+## 15.2 Nested Types
+
+...
+
+## 15.3 RTTI and Type Cast Operators
+
+### Runtime Type Identification (RTTI)
+
+- We can convert a pointer explicitly to another, even it isn’t appropriate.
+
+- How to convert safely?
+
+  Let's look at this example:
+
+  ```c++
+  class Person;
+  class Student: public Person;
+  Person person("Yu");
+  Student student("Sam", "20210212");
+  Person* pp = &student; // add the student's address to pp;
+  Person& rp = student;  // rp reference person
+  Student * ps = (Student*)&person; //danger! 把Person的对象 强制转换成Student类型，然后赋给ps。
+  ```
+
+### RTTI and Type Cast Operators
+
+- Runtime type identification (RTTI)
+  - C++ feature
+  - The type of an object to be determined during runtime.
+- `dynamic_cast` operator: conversion of polymorphic(多态的) types.
+- `typeid` operator: Identify the exact type of an object.
+- `type_info` class. the type information returned by the `typeid` operator.
+
+### typeid
+
+> typeid.cpp
+
+- typeid operator
+  - determine whether two objects are the same type
+  - Accept: the name of a class, an expression that evaluates to an object
+- type_info class
+  - The typeid operator returns a reference to a type_info object
+  - Defined in the <typeinfo> header file
+  - Comparing type using the overloaded == and != operators
+
+### dynamic_cast
+
+- It can safely assign the address of an object to a pointer of a particular type.
+- Invoke the correct version of a class method (remember virtual functions)
+
+```c++
+Person person("Yu");
+Student student("Sam", "20210212");
+Person* pp = NULL;
+Student * ps = NULL;
+ps = dynamic_cast<Student*>(&person); // NULL
+pp = dynamic_cast<Person*>(&student);
+```
+
+### More Type Cast Operators
+
+Three more operators:
+
+- const_cast:
+
+  - Type cast for const or volatile value
+
+- static_cast:
+
+  - It’s valid only if type_name can be converted implicitly to the same type that expression has, or vice versa
+  - Otherwise, the type cast is an error
+
+  ```c++
+  Base * pB = static_cast<Base*>(derived); //valid
+  Derived * pD = static_cast<Derived*>(base); //valid
+  UnRelated * pU = static_cast<UnRelated*>(base); //invalid
+  ```
+
+- reinterpret_cast
+  - Converts between types by reinterpreting the underlying bit pattern.
+
+> reinterpret_cast.cpp
+
+```c++
+int i = 18;
+float * p1 = reinterpret_cast<float *>(i); // static_cast will fail
+int * p2 = reinterpret_cast<int*>(p1);
+```
+
