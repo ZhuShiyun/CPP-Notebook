@@ -1,3 +1,16 @@
+2023.10.26
+
+1. 位运算（&、|、^、~、>>、<<）https://www.runoob.com/w3cnote/bit-operation.html
+1. ＜C语言＞数据结构：环形缓冲区RingBuffer https://www.codenong.com/cs109815773/
+
+2023.10.24
+
+1. boost库介绍以及使用 https://blog.csdn.net/huangwenhuan/article/details/129923917
+
+2023.10.22
+
+1. Debugging ROS Node with VS-Code  https://medium.com/@vasank1958/debugging-ros-node-with-vs-code-a735106c4f9a
+
 2023.10.20
 
 1. stack unwinding：https://stackoverflow.com/questions/2331316/what-is-stack-unwinding
