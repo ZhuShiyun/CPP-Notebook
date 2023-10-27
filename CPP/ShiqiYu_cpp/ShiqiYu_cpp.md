@@ -1,8 +1,322 @@
-# 
+# ShiqiYu CPP -Volume II
 
-# 9.4 const and static Members
+# Chapter 9: Basics of Classes 
 
-## const Variables
+## 9.1 Classes and objects
+
+### Structures
+
+- A struct in C is a type consisting of a sequence of data members.
+
+- Some functions/statements are needed to operate the data members of an object of a struct type.
+
+  ```c
+  struct Student
+  {
+  	char name[4];
+  	int born;
+  	bool male;
+  };
+  struct Student stu;
+  strcpy(stu.name, "Yu");
+  stu.born = 2000;
+  stu.male = true;
+  ```
+
+  <img src="images/Lecture0901.png" style="zoom:50%;" />
+
+### Classes
+
+> firstclass.cpp
+
+- You should be very careful to manipulated the data members in a `struct` object.
+
+- Can we improve `struct` to a better one?
+
+- Yes, it is `class`! We can put some member functions in it.
+
+  ```c++
+  class Student
+  {
+   public:
+  	char name[4];
+  	int born;
+  	bool male;
+  	void setName(const char * s)
+  	{
+  		strncpy(name, s, sizeof(name));
+  	}
+  	void setBorn(int b)
+  	{ ...
+  ```
+
+  And **safer solution**:
+
+  ```c++
+  Student yu;
+  yu.setName("Yu");
+  ```
+
+### Access Specifiers
+
+> access-attribute.cpp
+
+- You can protect data members by access specifier private .
+
+- Then data member can only be accessed by well designed member functions.
+
+  ```C++
+  class Student
+  {
+   private:
+  	char name[4];
+  	int born;
+  	bool male;
+   public:
+  	void setName(const char * s)
+  	{
+  		strncpy(name, s, sizeof(name));
+  	}
+  	void setBorn(int b)
+  	{
+  		...
+  ```
+
+  What will happen? 👇
+
+  ```c++
+  Student yu;
+  yu.born = 2001;
+  ```
+
+### Member Functions
+
+- A member function can be defined inside or outside class
+
+  ```c++
+  class Student
+  {
+   private:
+  	char name[4];
+  	int born;
+  	bool male;
+   public:
+  	void setName(const char * s) // inline function
+  	{
+  		strncpy(name, s, sizeof(name));
+  	}
+  	void setBorn(int b) // inline function
+  	{
+  		born = b;
+  	}
+  	void setGender(bool isMale);
+  	void printInfo();
+  };
+  
+  inline void Student::setGender(bool isMale) // inline function
+  {
+  	male = isMale;
+  }
+  void Student::printInfo()
+  {
+  	cout << "Name: " << name << endl;
+  	cout << "Born in " << born << endl;
+  	cout << "Gender: " << (male ? "Male" : "Female") << endl;
+  }
+  ```
+
+### File Structures
+
+- The source code can be placed into multiple files
+
+  > student.hpp
+
+  ```
+  class Student
+  {
+   private:
+  	char name[4];
+  	int born;
+  	bool male;
+   public:
+  	void setName(const char * s)
+  	{
+  		strncpy(name, s, sizeof(name));
+  	}
+  	void setBorn(int b)
+  	{
+  		born = b;
+  	}
+  	void setGender(bool isMale);
+  	void printInfo();
+  };
+  ```
+
+  > student.cpp
+
+  ```c++
+  void Student::setGender(bool isMale)
+  {
+  	male = isMale;
+  }
+  void Student::printInfo()
+  {
+  	cout << "Name: " << name << endl;
+  	cout << "Born in " << born << endl;
+  	cout << "Gender: " << (male ? "Male" : "Female") << endl;
+  }
+  ```
+
+## 9.2 Constructors and destructors
+
+### Constructors
+
+> constructor.cpp
+
+- Different from `struc`t in C, a constructor will be invoked when creating an object of a class.
+
+  - `struct` in C: allocate memory
+  - `class` in C++: allocate memory & invoke a constructor
+
+- But ... No constructor is defined explicitly in previous examples.
+
+  - The compiler will generate one with empty body
+
+  ```c++
+  // • The same name with the class.
+  // • Have no return value
+  class Student
+  {
+   private:
+  // ...
+   public:
+  	Student()
+  	{
+  		name[0] = 0;
+  		born = 0;
+  		male = false;
+  	}
+  	Student(const char * initName, int initBorn, bool isMale)
+  	{
+  		setName(initName);
+  		born = initBorn;
+  		male = isMale;
+  	}
+  };
+  ```
+
+- The members can also be initialized as follows
+
+  ```c++
+  Student(const char * initName): born(0), male(true)
+  {
+  	setName(initName);
+  }
+  ```
+
+### Destructors
+
+> destructor.cpp
+
+- The destructor will be invoked when the object is destroyed.
+
+- Be formed from the class name preceded by a tilde (~)
+
+- Have no return value, no parameters
+
+  ```c++
+  class Student
+  {
+  // ...
+   public:
+  	Student()
+  	{
+  		name = new char[1024]{0};
+  		born = 0;
+  		male = false;
+  		cout << "Constructor: Person()" << endl;
+  	}
+  	~Student()
+  	{
+  		delete [] name;
+  	}
+  };
+  ```
+
+  - Here is an array of `Student` object:
+
+    > array.cpp
+
+  ```c++
+  Student * class1 = new Student[3]{
+  	{"Tom", 2000, true},
+  	{"Bob", 2001, true},
+  	{"Amy", 2002, false},
+  };
+  ```
+
+  - What is the difference between the following two lines?
+
+  ```c++
+  delete class1;
+  delete []class1;
+  ```
+
+  
+
+## 9.3 `this `pointer
+
+### Why is `this` needed?
+
+- How does a member function know which **name**?
+
+  ```c++
+  Student yu = Student{"Yu", 2000, true};
+  Student amy = Student{"Amy", 2000, true};
+  yu.setName("yu");
+  amy.setName("Amy");
+  // -----------------------------------------
+  void setName(const char * s)
+  {
+  	strncpy(name, s, 1024);
+  }
+  ```
+
+### this Pointer
+
+> this.cpp
+
+- All methods in a function have a this pointer.
+
+- It is set to the address of the object that invokes the method.
+
+  ```c++
+  void setBorn(int b) {
+  	born = b;
+  }
+  ```
+
+  👇
+
+  ```c++
+  void setBorn(int b) {
+  	this->born = b;
+  }
+  ```
+
+  👇
+
+  ```c++
+  void setBorn(int born) {
+      this->born = born;
+  }
+  ```
+
+  
+
+## 9.4 const and static Members
+
+### const Variables
 
 - Statements for constants
 
@@ -22,7 +336,7 @@
   void func(const int &);
   ```
 
-## const Members
+### const Members
 
 - `const` member variables behavior similar with normal const variables
 - `const` member functions promise not to modify member variables.
@@ -47,7 +361,7 @@ class Student
 }
 ```
 
-## static Members
+### static Members
 
 - **static** members are not bound to class instances.
 
